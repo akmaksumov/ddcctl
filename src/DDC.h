@@ -20,16 +20,16 @@
 #define RESET_BRIGHTNESS_AND_CONTRAST 0x05
 #define RESET_GEOMETRY 0x06
 #define RESET_COLOR 0x08
-#define BRIGHTNESS 0x10  //OK
-#define CONTRAST 0x12 //OK
-#define COLOR_PRESET_A                 0x14     // dell u2515h -> Presets: 4 = 5000K, 5 = 6500K, 6 = 7500K, 8 = 9300K, 9 = 10000K, 11 = 5700K, 12 = Custom Color
+#define BRIGHTNESS 0x10     // OK
+#define CONTRAST 0x12       // OK
+#define COLOR_PRESET_A 0x14 // dell u2515h -> Presets: 4 = 5000K, 5 = 6500K, 6 = 7500K, 8 = 9300K, 9 = 10000K, 11 = 5700K, 12 = Custom Color
 #define RED_GAIN 0x16
 #define GREEN_GAIN 0x18
 #define BLUE_GAIN 0x1A
 #define AUTO_SIZE_CENTER 0x1E
 #define WIDTH 0x22
 #define HEIGHT 0x32
-#define VERTICAL_POS	0x30
+#define VERTICAL_POS 0x30
 #define HORIZONTAL_POS 0x20
 #define PINCUSHION_AMP 0x24
 #define PINCUSHION_PHASE 0x42
@@ -45,30 +45,31 @@
 #define VERTICAL_STATIC_CONVERGENCE 0x28
 #define MOIRE_CANCEL 0x56
 #define INPUT_SOURCE 0x60
+#define INPUT_SOURCE_LG 0xF4 // alternative input source command for some LG monitors
 #define AUDIO_SPEAKER_VOLUME 0x62
 #define RED_BLACK_LEVEL 0x6C
 #define GREEN_BLACK_LEVEL 0x6E
 #define BLUE_BLACK_LEVEL 0x70
 #define ORIENTATION 0xAA
 #define AUDIO_MUTE 0x8D
-#define SETTINGS 0xB0                  //unsure on this one
-#define ON_SCREEN_DISPLAY              0xCA     // read only   -> returns '1' (OSD closed) or '2' (OSD active)
+#define SETTINGS 0xB0          // unsure on this one
+#define ON_SCREEN_DISPLAY 0xCA // read only   -> returns '1' (OSD closed) or '2' (OSD active)
 #define OSD_LANGUAGE 0xCC
 #define DPMS 0xD6
-#define COLOR_PRESET_B                 0xDC     // dell u2515h -> Presets: 0 = Standard, 2 = Multimedia, 3 = Movie, 5 = Game
+#define COLOR_PRESET_B 0xDC // dell u2515h -> Presets: 0 = Standard, 2 = Multimedia, 3 = Movie, 5 = Game
 #define VCP_VERSION 0xDF
-#define COLOR_PRESET_C                 0xE0     // dell u2515h -> Brightness on/off (0 or 1)
+#define COLOR_PRESET_C 0xE0 // dell u2515h -> Brightness on/off (0 or 1)
 #define POWER_CONTROL 0xE1
 #define TOP_LEFT_SCREEN_PURITY 0xE8
 #define TOP_RIGHT_SCREEN_PURITY 0xE9
 #define BOTTOM_LEFT_SCREEN_PURITY 0xE8
 #define BOTTOM_RIGHT_SCREEN_PURITY 0xEB
 
-
 struct DDCWriteCommand
 {
     UInt8 control_id;
     UInt8 new_value;
+    UInt8 i2c_source_address;
 };
 
 struct DDCReadCommand
@@ -77,25 +78,30 @@ struct DDCReadCommand
     bool success;
     UInt8 max_value;
     UInt8 current_value;
+    UInt8 i2c_source_address;
 };
 
-struct EDID {
+struct EDID
+{
     UInt64 header : 64;
     UInt8 : 1;
-    UInt16 eisaid :15;
+    UInt16 eisaid : 15;
     UInt16 productcode : 16;
     UInt32 serial : 32;
     UInt8 week : 8;
     UInt8 year : 8;
     UInt8 versionmajor : 8;
     UInt8 versionminor : 8;
-    union videoinput {
-        struct digitalinput {
+    union videoinput
+    {
+        struct digitalinput
+        {
             UInt8 type : 1;
             UInt8 : 6;
             UInt8 dfp : 1;
         } digital;
-        struct analoginput {
+        struct analoginput
+        {
             UInt8 type : 1;
             UInt8 synclevels : 2;
             UInt8 pedestal : 1;
@@ -111,7 +117,7 @@ struct EDID {
     UInt8 standby : 1;
     UInt8 suspend : 1;
     UInt8 activeoff : 1;
-    UInt8 displaytype: 2;
+    UInt8 displaytype : 2;
     UInt8 srgb : 1;
     UInt8 preferredtiming : 1;
     UInt8 gtf : 1;
@@ -149,7 +155,8 @@ struct EDID {
     UInt8 t1280x1024a75 : 1;
     UInt8 t1152x870a75 : 1;
     UInt8 othermodes : 7;
-    struct timing {
+    struct timing
+    {
         UInt8 xresolution : 8;
         UInt8 ratio : 2;
         UInt8 vertical : 6;
@@ -161,8 +168,10 @@ struct EDID {
     struct timing timing6;
     struct timing timing7;
     struct timing timing8;
-    union descriptor {
-        struct timingdetail {
+    union descriptor
+    {
+        struct timingdetail
+        {
             UInt16 clock : 16;
             UInt8 hactivelsb : 8;
             UInt8 hblankinglsb : 8;
@@ -189,17 +198,19 @@ struct EDID {
             UInt8 interlaced : 1;
             UInt8 stereo : 2;
             UInt8 synctype : 2;
-            UInt8 vsyncpol_serrated: 1;
-            UInt8 hsyncpol_syncall: 1;
+            UInt8 vsyncpol_serrated : 1;
+            UInt8 hsyncpol_syncall : 1;
             UInt8 twowaystereo : 1;
         } timing;
-        struct text {
+        struct text
+        {
             UInt32 : 24;
             UInt8 type : 8;
             UInt8 : 8;
             char data[13];
         } text;
-        struct __attribute__ ((packed)) rangelimits {
+        struct __attribute__((packed)) rangelimits
+        {
             UInt64 header : 40;
             UInt8 minvfield : 8;
             UInt8 minhfield : 8;
@@ -214,7 +225,8 @@ struct EDID {
             UInt8 kvalue : 8;
             UInt8 jvalue : 8;
         } range;
-        struct __attribute__ ((packed)) whitepoint {
+        struct __attribute__((packed)) whitepoint
+        {
             UInt64 header : 40;
             UInt8 index : 8;
             UInt8 : 4;
